@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>AI 助手</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
@@ -48,6 +49,7 @@
     <div class="welcome" id="welcomeWrap">✨<br>你好，我是AI助手<br>随时为你提供帮助</div>
   </div>
   <div class="toolbar">
+    <span class="chip" id="schChip">🌐联网</span>
     <span class="chip" id="mmChip">🧠导图</span>
     <span class="chip" id="imgChip">📷图片</span>
     <input type="file" id="imgInput" accept="image/*" style="display:none">
@@ -68,7 +70,7 @@
     // ============================================
     
     const SK = 'a_msgs', PK = 'a_ok';
-    let msgs = [], busy = 0;
+    let msgs = [], busy = 0, searchOn = 0;
     const chatArea = document.getElementById('chatArea');
     const welcome = document.getElementById('welcomeWrap');
     const mi = document.getElementById('mi');
@@ -120,7 +122,17 @@
       busy = 1; sb.textContent='■'; sb.disabled=1;
       
       rUser(txt);
-      msgs.push({role:'user', content:txt});
+      let finalTxt = txt;
+      if(searchOn) {
+        try {
+          let sr = await fetch('https://api.duckduckgo.com/?q='+encodeURIComponent(txt)+'&format=json&no_html=1');
+          let sd = await sr.json();
+          let info = sd.AbstractText || '';
+          if(sd.RelatedTopics) sd.RelatedTopics.slice(0,3).forEach(t => { if(t.Text) info += '\n'+t.Text; });
+          if(info) finalTxt = '[联网搜索结果]\n'+info+'\n\n[用户问题]\n'+txt+'\n\n请基于以上搜索结果回答。';
+        } catch(e) {}
+      }
+      msgs.push({role:'user', content:finalTxt});
       saveM();
       mi.value=''; mi.style.height='auto';
       
@@ -168,17 +180,28 @@
     sb.onclick = send;
     mi.onkeydown = e => { if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } };
     mi.oninput = () => { mi.style.height='auto'; mi.style.height=Math.min(mi.scrollHeight,70)+'px'; };
+    
+    document.getElementById('schChip').onclick = function() {
+      searchOn = !searchOn;
+      this.classList.toggle('active', searchOn);
+      this.textContent = searchOn ? '🌐联网中' : '🌐联网';
+    };
+    
     document.getElementById('clearBtn').onclick = () => {
       if(confirm('清空对话？')){ msgs=[{role:'system',content:'你是全能助手'}]; localStorage.removeItem(SK); chatArea.innerHTML=''; welcome.style.display='flex'; }
     };
+    
     document.getElementById('roleBtn').onclick = () => {
       let r = prompt('🎭 输入角色设定：\n如：你是李白，正在月下独酌...');
       if(r) { msgs=[{role:'system',content:r}]; localStorage.removeItem(SK); chatArea.innerHTML=''; welcome.style.display='flex'; }
     };
+    
     document.getElementById('mmChip').onclick = () => {
       mi.value = '请为「'+(mi.value.trim()||'主题')+'」生成思维导图，用mermaid格式'; mi.focus();
     };
+    
     document.getElementById('imgChip').onclick = () => document.getElementById('imgInput').click();
+    
     document.getElementById('imgInput').onchange = function(e) {
       Array.from(e.target.files).forEach(f => {
         let r = new FileReader();
