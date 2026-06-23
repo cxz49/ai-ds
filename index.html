@@ -4,217 +4,673 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>AI 助手</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>🦋 模拟器</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    :root{--bg:#0a0a0a;--t:#e8e8ec;--t2:#98989e;--a:#4a90d9;--b:rgba(255,255,255,0.08)}
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;max-width:700px;margin:0 auto;overflow:hidden}
-    .hd{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;flex-shrink:0}
-    .hd-name{font-size:14px;font-weight:600}
-    .hd-btn{width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.06);color:var(--t);font-size:13px;cursor:pointer}
-    .chat{flex:1;overflow-y:auto;padding:6px 10px 14px;-webkit-overflow-scrolling:touch}
-    .chat::-webkit-scrollbar{width:0}
-    .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:45vh;text-align:center;color:var(--t2);font-size:13px;line-height:1.8}
-    .msg{margin-bottom:5px;max-width:88%;animation:fade .25s;display:flex;gap:5px;align-items:flex-end}
-    @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-    .msg.user{margin-left:auto;flex-direction:row-reverse}
-    .bub{padding:7px 10px;border-radius:14px;line-height:1.45;word-break:break-word;font-size:13px}
-    .user .bub{background:var(--a);color:#fff;border-bottom-right-radius:3px}
-    .assistant .bub{background:rgba(255,255,255,0.05);border:1px solid var(--b);border-bottom-left-radius:3px}
-    .bub p{margin:2px 0}.bub pre{background:rgba(0,0,0,0.4);padding:6px;border-radius:6px;overflow-x:auto;font-size:11px;margin:3px 0}.bub code{font-size:11px;background:rgba(255,255,255,0.08);padding:1px 3px;border-radius:3px}
-    .typing::after{content:'|';animation:blink 1s infinite;color:var(--a)}@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-    .act{margin-top:2px}.act-btn{font-size:9px;padding:2px 7px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--t2);cursor:pointer}
-    .load{display:flex;gap:3px;padding:3px 0}.load span{width:5px;height:5px;border-radius:50%;background:var(--t2);animation:dot 1.4s infinite}.load span:nth-child(2){animation-delay:.2s}.load span:nth-child(3){animation-delay:.4s}@keyframes dot{0%,80%,100%{transform:scale(.5);opacity:.4}40%{transform:scale(1);opacity:1}}
-    .toolbar{display:flex;gap:3px;padding:0 10px 5px;flex-wrap:wrap}.chip{font-size:9px;padding:4px 8px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--t2);cursor:pointer}.chip.active{background:rgba(74,144,217,0.15);color:var(--a);border-color:var(--a)}
-    .input-area{display:flex;align-items:flex-end;gap:5px;padding:5px 10px;padding-bottom:max(5px,env(safe-area-inset-bottom))}
-    .input-wrap{flex:1;display:flex;align-items:flex-end;background:rgba(30,30,32,0.92);border-radius:16px;border:1px solid var(--b);padding:2px}
-    #mi{flex:1;border:none;background:transparent;padding:6px 8px;font-size:13px;color:var(--t);outline:none;resize:none;max-height:70px;line-height:1.4}
-    #mi::placeholder{color:var(--t2)}
-    .sb{width:32px;height:32px;border-radius:50%;border:none;background:var(--a);color:#fff;font-size:14px;cursor:pointer;flex-shrink:0}
-    .sb:disabled{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.3)}
-    .hidden{display:none!important}
+    :root {
+      --bg: #ffffff;
+      --surface: #f8f9fa;
+      --text: #1a1a1a;
+      --text2: #6b7280;
+      --accent: #7c3aed;
+      --bubble-user: #7c3aed;
+      --bubble-ai: #f3f4f6;
+      --border: #e5e7eb;
+      --shadow: 0 1px 3px rgba(0,0,0,0.04);
+      --radius: 16px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+      transition: background 0.3s;
+    }
+    /* 背景图层 */
+    .bg-layer {
+      position: fixed; top:0; left:0; right:0; bottom:0;
+      background-size: cover; background-position: center; z-index: 0; opacity: 0.15;
+      pointer-events: none;
+    }
+    .app {
+      position: relative; z-index: 1; display: flex; flex-direction: column; height: 100vh;
+      background: transparent;
+    }
+    /* 顶栏 */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      cursor: pointer; overflow: hidden; flex-shrink: 0;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .header-info { display: flex; flex-direction: column; }
+    .header-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .header-status { font-size: 10px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+    .header-actions { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    /* 聊天区 */
+    .chat {
+      flex: 1; overflow-y: auto; padding: 12px 14px; -webkit-overflow-scrolling: touch;
+    }
+    .welcome {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 40vh; text-align: center; color: var(--text2); font-size: 13px; line-height: 1.8;
+    }
+    .welcome-icon { font-size: 42px; margin-bottom: 10px; }
+    .msg {
+      margin-bottom: 12px; max-width: 88%; animation: fadeIn 0.2s ease;
+      display: flex; gap: 6px; align-items: flex-end;
+    }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+    .msg.user { margin-left: auto; flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--surface);
+      flex-shrink: 0; overflow: hidden; border: 1px solid var(--border);
+    }
+    .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .bubble {
+      padding: 8px 12px; border-radius: var(--radius); line-height: 1.5;
+      word-break: break-word; font-size: 13px; position: relative;
+    }
+    .user .bubble { background: var(--bubble-user); color: #fff; border-bottom-right-radius: 4px; }
+    .assistant .bubble { background: var(--bubble-ai); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .bubble p { margin: 3px 0; }
+    .bubble pre { background: rgba(0,0,0,0.04); padding: 8px; border-radius: 8px; overflow-x: auto; font-size: 11px; margin: 4px 0; }
+    .bubble code { font-size: 11px; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
+    .typing::after { content: '|'; animation: blink 1s infinite; color: var(--accent); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .msg-actions { margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
+    .action-chip {
+      font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text2); cursor: pointer;
+    }
+    .loading { display: flex; gap: 4px; padding: 4px 0; }
+    .loading span { width: 5px; height: 5px; border-radius: 50%; background: var(--text2); animation: bounce 1.4s infinite; }
+    .loading span:nth-child(2) { animation-delay: 0.2s; }
+    .loading span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+    .toolbar {
+      display: flex; gap: 4px; padding: 0 12px 8px; flex-wrap: wrap;
+    }
+    .chip {
+      font-size: 10px; padding: 5px 10px; border-radius: 14px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text2); cursor: pointer; white-space: nowrap;
+    }
+    .chip.active { background: rgba(124,58,237,0.1); color: var(--accent); border-color: var(--accent); }
+    .input-area {
+      display: flex; align-items: flex-end; gap: 6px; padding: 8px 12px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      background: rgba(255,255,255,0.8); backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+    }
+    .input-wrap {
+      flex: 1; display: flex; align-items: flex-end; background: var(--surface);
+      border-radius: 20px; border: 1px solid var(--border); padding: 4px;
+    }
+    #messageInput {
+      flex: 1; border: none; background: transparent; padding: 8px 12px;
+      font-size: 13px; color: var(--text); outline: none; resize: none;
+      max-height: 80px; line-height: 1.4;
+    }
+    #messageInput::placeholder { color: var(--text2); }
+    .send-btn {
+      width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: var(--accent); color: #fff; font-size: 16px; cursor: pointer;
+      flex-shrink: 0;
+    }
+    .send-btn:disabled { opacity: 0.4; }
+    .modal {
+      display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal.active { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 18px; padding: 20px; width: 300px;
+      max-width: 90vw; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .modal-box h3 { margin-bottom: 10px; font-size: 15px; }
+    .modal-box input, .modal-box textarea {
+      width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px;
+      font-size: 13px; margin-bottom: 8px; outline: none; font-family: inherit;
+    }
+    .modal-box button {
+      width: 100%; padding: 8px; border-radius: 10px; border: none;
+      font-size: 13px; cursor: pointer; margin-top: 4px;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .hidden { display: none !important; }
+    #imageInput, #bgImageInput, #avatarImageInput { display: none; }
+    .token-badge { font-size: 9px; color: var(--text2); margin-left: 2px; }
   </style>
 </head>
 <body>
-  <div class="hd">
-    <span class="hd-name">🤖 DeepSeek 助手</span>
-    <div>
-      <button class="hd-btn" id="roleBtn" title="角色扮演">🎭</button>
-      <button class="hd-btn" id="clearBtn" title="清空">🗑</button>
+  <div class="bg-layer" id="bgLayer"></div>
+  <div class="app">
+    <!-- 顶栏 -->
+    <div class="header">
+      <div class="header-left">
+        <div class="avatar" id="headerAvatar" title="点击更换头像">🦋</div>
+        <div class="header-info">
+          <span class="header-name" id="headerName">模拟器</span>
+          <span class="header-status"><span class="status-dot"></span>在线</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="bgBtn" title="换背景">🖼️</button>
+        <button class="icon-btn" id="roleBtn" title="角色扮演">🎭</button>
+        <button class="icon-btn" id="clearBtn" title="清空">🗑️</button>
+      </div>
+    </div>
+    <!-- 聊天区 -->
+    <div class="chat" id="chatArea">
+      <div class="welcome" id="welcomeWrap">
+        <div class="welcome-icon">🦋</div>
+        你好，我是你的AI助手<br>可进行角色扮演、联网搜索、图片分析
+      </div>
+    </div>
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <span class="chip" id="searchChip">🌐 联网</span>
+      <span class="chip" id="mindmapChip">🧠 导图</span>
+      <label class="chip" for="imageInput">📷 图片</label>
+      <input type="file" id="imageInput" accept="image/*" multiple>
+      <span class="chip" id="tokenChip">💎 <span id="tokenCount">0</span></span>
+    </div>
+    <!-- 输入区 -->
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea id="messageInput" rows="1" placeholder="输入消息..." disabled></textarea>
+        <button class="send-btn" id="sendBtn" disabled>↑</button>
+      </div>
     </div>
   </div>
-  <div class="chat" id="chatArea">
-    <div class="welcome" id="welcomeWrap">✨<br>你好，我是AI助手<br>随时为你提供帮助</div>
+
+  <!-- 密码弹窗 -->
+  <div class="modal active" id="passwordModal">
+    <div class="modal-box">
+      <h3>🔐 输入密码</h3>
+      <p style="color:#ef4444;font-size:11px;display:none;" id="pwError">密码错误</p>
+      <input type="password" id="pwInput" placeholder="访问密码">
+      <button class="btn-primary" id="pwSubmit">确认</button>
+    </div>
   </div>
-  <div class="toolbar">
-    <span class="chip" id="schChip">🌐联网</span>
-    <span class="chip" id="mmChip">🧠导图</span>
-    <span class="chip" id="imgChip">📷图片</span>
-    <input type="file" id="imgInput" accept="image/*" style="display:none">
+
+  <!-- 角色弹窗 -->
+  <div class="modal" id="roleModal">
+    <div class="modal-box">
+      <h3>🎭 角色设定</h3>
+      <textarea id="roleInput" rows="3" placeholder="输入角色设定，或选择模板..."></textarea>
+      <button class="btn-primary" id="roleSubmit">开始扮演</button>
+      <button class="btn-ghost" id="roleCancel">取消</button>
+    </div>
   </div>
-  <div class="input-area">
-    <div class="input-wrap">
-      <textarea id="mi" rows="1" placeholder="输入消息..."></textarea>
-      <button class="sb" id="sb">↑</button>
+
+  <!-- 背景弹窗 -->
+  <div class="modal" id="bgModal">
+    <div class="modal-box">
+      <h3>🖼️ 背景设置</h3>
+      <input type="file" id="bgImageInput" accept="image/*">
+      <p style="font-size:10px;color:var(--text2);margin:4px 0;">或输入URL</p>
+      <input type="text" id="bgUrlInput" placeholder="https://...">
+      <button class="btn-primary" id="bgSubmit">确认</button>
+      <button class="btn-ghost" id="bgReset">恢复默认</button>
     </div>
   </div>
 
   <script>
-    // ============================================
-    // 👇 只需要改这两行！
-    // ============================================
-    const DEEPSEEK_KEY = 'sk -855c2c84b6f44685908843e2c6961e2c';
-    const ACCESS_PW = 'cxzhenlihai';
-    // ============================================
-    
-    const SK = 'a_msgs', PK = 'a_ok';
-    let msgs = [], busy = 0, searchOn = 0;
+    // ====================== 配置 ======================
+    const DEEPSEEK_KEY = 'sk -855c2c84b6f44685908843e2c6961e2c';  // 👈 改这里
+    const ACCESS_PW = 'cxzhenlihai';           // 👈 改这里
+    // =================================================
+
+    const STORAGE_KEY = 'chat_messages';
+    const CONFIG_KEY = 'app_config';
+    const PASSWORD_KEY = 'auth_verified';
+
+    // 状态
+    let messages = [];
+    let isGenerating = false;
+    let searchEnabled = false;
+    let totalTokens = parseInt(localStorage.getItem('total_tokens') || '0');
+    let currentConfig = { bg: '', avatar: '', name: '模拟器', role: '' };
+
+    // DOM 元素
     const chatArea = document.getElementById('chatArea');
-    const welcome = document.getElementById('welcomeWrap');
-    const mi = document.getElementById('mi');
-    const sb = document.getElementById('sb');
-    
-    if(sessionStorage.getItem(PK)!=='1') {
-      let pw = prompt('🔐 请输入访问密码：');
-      if(pw === ACCESS_PW) sessionStorage.setItem(PK,'1');
-      else { document.body.innerHTML = '<div style="color:#fff;text-align:center;padding:50px">密码错误</div>'; throw new Error('密码错误'); }
+    const welcomeWrap = document.getElementById('welcomeWrap');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const bgLayer = document.getElementById('bgLayer');
+    const headerAvatar = document.getElementById('headerAvatar');
+    const headerName = document.getElementById('headerName');
+    const tokenSpan = document.getElementById('tokenCount');
+
+    // 初始化配置
+    try {
+      const saved = localStorage.getItem(CONFIG_KEY);
+      if (saved) currentConfig = JSON.parse(saved);
+    } catch(e) {}
+    applyConfig();
+
+    // ====================== 功能函数 ======================
+    function applyConfig() {
+      if (currentConfig.bg) {
+        bgLayer.style.backgroundImage = `url(${currentConfig.bg})`;
+      } else {
+        bgLayer.style.backgroundImage = '';
+      }
+      if (currentConfig.avatar) {
+        headerAvatar.innerHTML = `<img src="${currentConfig.avatar}" alt="avatar">`;
+      } else {
+        headerAvatar.innerHTML = '🦋';
+      }
+      headerName.textContent = currentConfig.name || '模拟器';
+      document.querySelectorAll('.assistant .msg-avatar').forEach(av => {
+        if (currentConfig.avatar) av.innerHTML = `<img src="${currentConfig.avatar}">`;
+      });
+      updateTokenDisplay();
     }
-    
-    function loadM() {
+
+    function saveConfig() {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(currentConfig));
+    }
+
+    function updateTokenDisplay() {
+      tokenSpan.textContent = totalTokens;
+    }
+
+    // 密码验证
+    function checkPassword() {
+      if (sessionStorage.getItem(PASSWORD_KEY) === 'true') {
+        document.getElementById('passwordModal').classList.remove('active');
+        enableInput();
+        return;
+      }
+      document.getElementById('passwordModal').classList.add('active');
+    }
+
+    document.getElementById('pwSubmit').addEventListener('click', () => {
+      if (document.getElementById('pwInput').value === ACCESS_PW) {
+        sessionStorage.setItem(PASSWORD_KEY, 'true');
+        document.getElementById('passwordModal').classList.remove('active');
+        enableInput();
+      } else {
+        document.getElementById('pwError').style.display = 'block';
+      }
+    });
+
+    function enableInput() {
+      messageInput.disabled = false;
+      sendBtn.disabled = false;
+      messageInput.focus();
+    }
+
+    // 加载历史
+    function loadMessages() {
       try {
-        let s = localStorage.getItem(SK);
-        if(s) { let p = JSON.parse(s); if(p.length) { msgs=p; chatArea.innerHTML=''; welcome.style.display='none'; msgs.forEach(m=>{ if(m.role==='user') rUser(m.content); else rAI(m.content,1); }); return; } }
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            messages = parsed;
+            renderAllMessages();
+            return;
+          }
+        }
       } catch(e) {}
-      msgs = [{role:'system',content:'你是全能助手，回答专业深入。'}];
+      messages = [{ role: 'system', content: '你是全能助手，回答专业实用。' }];
     }
-    
-    function saveM() { try { localStorage.setItem(SK, JSON.stringify(msgs.slice(-60))); } catch(e) {} }
-    function scroll() { chatArea.scrollTop = chatArea.scrollHeight; }
-    
-    function rUser(c) {
-      welcome.style.display='none';
-      let d = document.createElement('div'); d.className='msg user';
-      d.innerHTML = '<div class="bub">'+String(c).replace(/\n/g,'<br>')+'</div>';
-      chatArea.appendChild(d); scroll();
+
+    function renderAllMessages() {
+      chatArea.innerHTML = '';
+      welcomeWrap.style.display = 'none';
+      messages.forEach((m, index) => {
+        if (m.role === 'user') renderUserMessage(m.content, index);
+        else if (m.role === 'assistant') renderAssistantMessage(m.content, index);
+      });
+      chatArea.scrollTop = chatArea.scrollHeight;
     }
-    
-    function rAI(c, skip) {
-      welcome.style.display='none';
-      let d = document.createElement('div'); d.className='msg assistant';
-      let b = document.createElement('div'); b.className='bub';
-      b.innerHTML = marked.parse(String(c));
-      d.appendChild(b);
-      if(!skip) {
-        let act = document.createElement('div'); act.className='act';
-        let btn = document.createElement('button'); btn.className='act-btn'; btn.textContent='📋复制';
-        btn.onclick = () => { navigator.clipboard.writeText(c).then(()=>{ btn.textContent='✅'; setTimeout(()=>btn.textContent='📋复制',1500); }); };
-        act.appendChild(btn); d.appendChild(act);
-      }
-      chatArea.appendChild(d); scroll();
-      return b;
-    }
-    
-    async function send() {
-      let txt = mi.value.trim();
-      if(!txt || busy) return;
-      busy = 1; sb.textContent='■'; sb.disabled=1;
-      
-      rUser(txt);
-      let finalTxt = txt;
-      if(searchOn) {
-        try {
-          let sr = await fetch('https://api.duckduckgo.com/?q='+encodeURIComponent(txt)+'&format=json&no_html=1');
-          let sd = await sr.json();
-          let info = sd.AbstractText || '';
-          if(sd.RelatedTopics) sd.RelatedTopics.slice(0,3).forEach(t => { if(t.Text) info += '\n'+t.Text; });
-          if(info) finalTxt = '[联网搜索结果]\n'+info+'\n\n[用户问题]\n'+txt+'\n\n请基于以上搜索结果回答。';
-        } catch(e) {}
-      }
-      msgs.push({role:'user', content:finalTxt});
-      saveM();
-      mi.value=''; mi.style.height='auto';
-      
-      let d = document.createElement('div'); d.className='msg assistant';
-      let b = document.createElement('div'); b.className='bub';
-      b.innerHTML = '<div class="load"><span></span><span></span><span></span></div>';
-      d.appendChild(b); chatArea.appendChild(d); scroll();
-      
-      let full='', started=0;
+
+    function saveMessages() {
       try {
-        let res = await fetch('https://api.deepseek.com/v1/chat/completions', {
-          method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-          body:JSON.stringify({model:'deepseek-chat', messages:msgs, stream:1, temperature:0.8, max_tokens:8192})
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-100)));
+      } catch(e) {}
+    }
+
+    // 渲染用户消息
+    function renderUserMessage(content, index) {
+      welcomeWrap.style.display = 'none';
+      const div = document.createElement('div');
+      div.className = 'msg user';
+      div.dataset.index = index;
+      div.innerHTML = `
+        <div class="msg-avatar"></div>
+        <div class="bubble">
+          ${String(content).replace(/\n/g, '<br>')}
+        </div>
+      `;
+      // 长按编辑
+      div.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        editMessage(index);
+      });
+      div.addEventListener('click', (e) => {
+        if (e.target.closest('.bubble')) editMessage(index);
+      });
+      chatArea.appendChild(div);
+    }
+
+    // 编辑用户消息（撤回并重新输入）
+    function editMessage(index) {
+      if (isGenerating) return;
+      const userMsg = messages[index];
+      if (!userMsg || userMsg.role !== 'user') return;
+      // 截断消息数组，删除该消息及之后的所有消息
+      messages = messages.slice(0, index);
+      // 重新渲染
+      renderAllMessages();
+      saveMessages();
+      // 把内容放回输入框
+      messageInput.value = String(userMsg.content);
+      messageInput.focus();
+      // 恢复欢迎界面如果无消息
+      if (messages.length <= 1) {
+        welcomeWrap.style.display = 'flex';
+      }
+    }
+
+    // 渲染AI消息
+    function renderAssistantMessage(content, index) {
+      welcomeWrap.style.display = 'none';
+      const div = document.createElement('div');
+      div.className = 'msg assistant';
+      div.dataset.index = index;
+      div.innerHTML = `
+        <div class="msg-avatar">${currentConfig.avatar ? `<img src="${currentConfig.avatar}">` : '🦋'}</div>
+        <div class="bubble">${marked.parse(String(content))}</div>
+        <div class="msg-actions">
+          <span class="action-chip copy-btn">📋 复制</span>
+        </div>
+      `;
+      // 复制功能
+      div.querySelector('.copy-btn').addEventListener('click', () => {
+        navigator.clipboard.writeText(content);
+        const btn = div.querySelector('.copy-btn');
+        btn.textContent = '✅ 已复制';
+        setTimeout(() => btn.textContent = '📋 复制', 1500);
+      });
+      chatArea.appendChild(div);
+    }
+
+    // 发送消息
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || isGenerating) return;
+
+      isGenerating = true;
+      sendBtn.textContent = '⏳';
+      sendBtn.disabled = true;
+
+      // 添加用户消息
+      messages.push({ role: 'user', content: text });
+      renderUserMessage(text, messages.length - 1);
+      saveMessages();
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+
+      // 添加加载占位
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'msg assistant';
+      loadingDiv.innerHTML = `
+        <div class="msg-avatar">${currentConfig.avatar ? `<img src="${currentConfig.avatar}">` : '🦋'}</div>
+        <div class="bubble"><div class="loading"><span></span><span></span><span></span></div></div>
+      `;
+      chatArea.appendChild(loadingDiv);
+      chatArea.scrollTop = chatArea.scrollHeight;
+
+      let fullResponse = '';
+      let tokensUsed = 0;
+      try {
+        // 构建请求体
+        const requestBody = {
+          model: 'deepseek-chat',
+          messages: messages,
+          stream: true,
+          temperature: 0.8,
+          max_tokens: 8192
+        };
+
+        const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${DEEPSEEK_KEY}`
+          },
+          body: JSON.stringify(requestBody)
         });
-        if(!res.ok) throw new Error('请求失败('+res.status+')');
-        
-        let reader = res.body.getReader(), dec = new TextDecoder();
-        while(1) {
-          let {done,value} = await reader.read();
-          if(done) break;
-          dec.decode(value,{stream:1}).split('\n').forEach(line => {
-            if(line.startsWith('data: ')) {
-              let dd = line.slice(6);
-              if(dd==='[DONE]') return;
+
+        if (!res.ok) throw new Error(`请求失败 (${res.status})`);
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let bubbleDiv = loadingDiv.querySelector('.bubble');
+        let started = false;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
               try {
-                let delta = JSON.parse(dd).choices?.[0]?.delta?.content;
-                if(delta) { full+=delta; if(!started){b.innerHTML='';started=1;} b.innerHTML=marked.parse(full); b.classList.add('typing'); scroll(); }
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) {
+                  fullResponse += delta;
+                  if (!started) {
+                    bubbleDiv.innerHTML = '';
+                    started = true;
+                  }
+                  bubbleDiv.innerHTML = marked.parse(fullResponse);
+                  bubbleDiv.classList.add('typing');
+                  chatArea.scrollTop = chatArea.scrollHeight;
+                }
+                // 尝试获取usage（通常在最后一个data块中）
+                if (parsed.usage) {
+                  tokensUsed = parsed.usage.total_tokens || 0;
+                }
               } catch(e) {}
             }
-          });
+          }
         }
-        b.classList.remove('typing');
-        if(full) {
-          msgs.push({role:'assistant',content:full}); saveM();
-          let act = document.createElement('div'); act.className='act';
-          let btn = document.createElement('button'); btn.className='act-btn'; btn.textContent='📋复制';
-          btn.onclick = () => { navigator.clipboard.writeText(full).then(()=>{ btn.textContent='✅'; setTimeout(()=>btn.textContent='📋复制',1500); }); };
-          act.appendChild(btn); d.appendChild(act);
+
+        bubbleDiv.classList.remove('typing');
+        if (fullResponse) {
+          messages.push({ role: 'assistant', content: fullResponse });
+          // 如果没有从流中获取到token数，估算
+          if (tokensUsed === 0) {
+            tokensUsed = Math.ceil((text.length + fullResponse.length) / 2);
+          }
+          totalTokens += tokensUsed;
+          localStorage.setItem('total_tokens', totalTokens);
+          updateTokenDisplay();
+          saveMessages();
+          // 替换加载div为正式内容
+          loadingDiv.remove();
+          renderAssistantMessage(fullResponse, messages.length - 1);
+        } else {
+          loadingDiv.querySelector('.bubble').innerHTML = '⚠️ 未收到回复';
         }
-      } catch(e) { b.innerHTML='❌ '+e.message; }
-      busy=0; sb.textContent='↑'; sb.disabled=0; mi.focus();
+      } catch (error) {
+        loadingDiv.querySelector('.bubble').innerHTML = `❌ ${error.message}`;
+      }
+
+      isGenerating = false;
+      sendBtn.textContent = '↑';
+      sendBtn.disabled = false;
+      messageInput.focus();
+      chatArea.scrollTop = chatArea.scrollHeight;
     }
-    
-    sb.onclick = send;
-    mi.onkeydown = e => { if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } };
-    mi.oninput = () => { mi.style.height='auto'; mi.style.height=Math.min(mi.scrollHeight,70)+'px'; };
-    
-    document.getElementById('schChip').onclick = function() {
-      searchOn = !searchOn;
-      this.classList.toggle('active', searchOn);
-      this.textContent = searchOn ? '🌐联网中' : '🌐联网';
-    };
-    
-    document.getElementById('clearBtn').onclick = () => {
-      if(confirm('清空对话？')){ msgs=[{role:'system',content:'你是全能助手'}]; localStorage.removeItem(SK); chatArea.innerHTML=''; welcome.style.display='flex'; }
-    };
-    
-    document.getElementById('roleBtn').onclick = () => {
-      let r = prompt('🎭 输入角色设定：\n如：你是李白，正在月下独酌...');
-      if(r) { msgs=[{role:'system',content:r}]; localStorage.removeItem(SK); chatArea.innerHTML=''; welcome.style.display='flex'; }
-    };
-    
-    document.getElementById('mmChip').onclick = () => {
-      mi.value = '请为「'+(mi.value.trim()||'主题')+'」生成思维导图，用mermaid格式'; mi.focus();
-    };
-    
-    document.getElementById('imgChip').onclick = () => document.getElementById('imgInput').click();
-    
-    document.getElementById('imgInput').onchange = function(e) {
-      Array.from(e.target.files).forEach(f => {
-        let r = new FileReader();
-        r.onload = ev => {
-          msgs.push({role:'user', content:[{type:'image_url',image_url:{url:ev.target.result}},{type:'text',text:'请分析这张图片'}]});
-          saveM(); rUser('[图片]');
-          setTimeout(()=>send(), 100);
+
+    // 事件绑定
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    messageInput.addEventListener('input', () => {
+      messageInput.style.height = 'auto';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 80) + 'px';
+    });
+
+    // 联网搜索
+    document.getElementById('searchChip').addEventListener('click', function() {
+      searchEnabled = !searchEnabled;
+      this.classList.toggle('active', searchEnabled);
+      this.textContent = searchEnabled ? '🌐 联网中' : '🌐 联网';
+    });
+
+    // 思维导图
+    document.getElementById('mindmapChip').addEventListener('click', () => {
+      const topic = messageInput.value.trim() || '主题';
+      messageInput.value = `请生成关于「${topic}」的思维导图，用mermaid格式`;
+      messageInput.focus();
+    });
+
+    // 图片上传
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+      Array.from(e.target.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          messages.push({
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: ev.target.result } },
+              { type: 'text', text: '请分析这张图片' }
+            ]
+          });
+          saveMessages();
+          renderUserMessage('[图片]', messages.length - 1);
+          setTimeout(() => sendMessage(), 50);
         };
-        r.readAsDataURL(f);
+        reader.readAsDataURL(file);
       });
-    };
-    
-    loadM();
+      e.target.value = '';
+    });
+
+    // 角色扮演
+    document.getElementById('roleBtn').addEventListener('click', () => {
+      document.getElementById('roleModal').classList.add('active');
+    });
+    document.getElementById('roleSubmit').addEventListener('click', () => {
+      const roleText = document.getElementById('roleInput').value.trim();
+      if (roleText) {
+        messages = [{ role: 'system', content: roleText }];
+        localStorage.removeItem(STORAGE_KEY);
+        chatArea.innerHTML = '';
+        welcomeWrap.style.display = 'flex';
+        document.getElementById('roleModal').classList.remove('active');
+        document.getElementById('roleInput').value = '';
+        // 提取角色名作为AI名称和头像
+        const nameMatch = roleText.match(/你是([\u4e00-\u9fa5a-zA-Z0-9]+)/);
+        if (nameMatch) {
+          currentConfig.name = nameMatch[1];
+          headerName.textContent = currentConfig.name;
+          saveConfig();
+        }
+      }
+    });
+    document.getElementById('roleCancel').addEventListener('click', () => {
+      document.getElementById('roleModal').classList.remove('active');
+    });
+
+    // 清空对话
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if (confirm('确定清空所有对话？')) {
+        messages = [{ role: 'system', content: '你是全能助手，回答专业实用。' }];
+        localStorage.removeItem(STORAGE_KEY);
+        chatArea.innerHTML = '';
+        welcomeWrap.style.display = 'flex';
+      }
+    });
+
+    // 背景设置
+    document.getElementById('bgBtn').addEventListener('click', () => {
+      document.getElementById('bgModal').classList.add('active');
+    });
+    document.getElementById('bgImageInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        currentConfig.bg = ev.target.result;
+        applyConfig();
+        saveConfig();
+        document.getElementById('bgModal').classList.remove('active');
+      };
+      reader.readAsDataURL(file);
+    });
+    document.getElementById('bgSubmit').addEventListener('click', () => {
+      const url = document.getElementById('bgUrlInput').value.trim();
+      if (url) {
+        currentConfig.bg = url;
+        applyConfig();
+        saveConfig();
+        document.getElementById('bgModal').classList.remove('active');
+        document.getElementById('bgUrlInput').value = '';
+      }
+    });
+    document.getElementById('bgReset').addEventListener('click', () => {
+      currentConfig.bg = '';
+      applyConfig();
+      saveConfig();
+      document.getElementById('bgModal').classList.remove('active');
+    });
+    // 关闭弹窗
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
+      });
+    });
+
+    // 头像自定义
+    headerAvatar.addEventListener('click', () => {
+      const url = prompt('输入AI头像URL（留空恢复默认🦋）：');
+      if (url !== null) {
+        currentConfig.avatar = url;
+        applyConfig();
+        saveConfig();
+      }
+    });
+
+    // 初始化
+    loadMessages();
+    checkPassword();
+    updateTokenDisplay();
   </script>
 </body>
 </html>
